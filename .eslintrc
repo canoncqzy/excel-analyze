@@ -1,0 +1,23 @@
+{
+  "root": true,
+  "env": {
+    "node": true
+  },
+  "extends": [
+      "plugin:vue/vue3-essential",
+      "@vue/standard",
+      "@vue/typescript/recommended"
+  ],
+  "parserOptions": {
+    "ecmaVersion": 2020
+  },
+  "rules": {
+    "vue/multi-word-component-names": 0,
+    "no-unused-vars": [
+      "error",
+      // we are only using this rule to check for unused arguments since TS
+      // catches unused variables but not args.
+      { "varsIgnorePattern": ".*", "args": "none" }
+    ]
+  }
+}
