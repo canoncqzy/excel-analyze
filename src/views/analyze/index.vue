@@ -70,9 +70,25 @@ const handleData = async (remarkColumn: readonly ExcelJS.CellValue[], studentCol
     const student = studentColumn[i]
     const cell = worksheet.getCell(i, 1)
     cell.value = student
+    for (let j = 1; j < studentColumn.length; j++) {
+      if (i !== j) {
+        const other = studentColumn[j]
+        const repeat = (other as string).includes(student as string)
+        if (repeat) {
+          const cell = worksheet.getCell(i, 1)
+          cell.fill = {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: {
+              argb: '7FF56C6C'
+            }
+          }
+        }
+      }
+    }
   }
-  // const firstColumn = worksheet.getColumn(1)
-  // firstColumn.header = '学生'
+  const firstColumn = worksheet.getColumn(1)
+  firstColumn.header = '学生'
   const buffer = await workbook.xlsx.writeBuffer()
   writeFile('分析结果', buffer)
 }
