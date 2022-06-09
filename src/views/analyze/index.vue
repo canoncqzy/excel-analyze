@@ -1,12 +1,59 @@
 <template>
   <div class="container">
-    {{ title }}
+    <a-upload-dragger
+      accept=".xlsx,.xls"
+      :customRequest="customRequest"
+    >
+      <p class="ant-upload-drag-icon">
+        <inbox-outlined></inbox-outlined>
+      </p>
+      <p class="ant-upload-text">Click or drag file to this area to upload</p>
+      <p class="ant-upload-hint">
+        Support for a single or bulk upload. Strictly prohibit from uploading company data or other
+        band files
+      </p>
+    </a-upload-dragger>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-const title = ref<string>('analyze1')
+import { InboxOutlined } from '@ant-design/icons-vue'
+import type { UploadChangeParam } from 'ant-design-vue'
+import * as ExcelJS from 'exceljs'
+
+interface UploadParam extends UploadChangeParam {
+  onSuccess(): void
+}
+
+const workbook = new ExcelJS.Workbook()
+
+const parseFile: (file: File) => Promise<ExcelJS.Workbook> = (file) => {
+  return new Promise(resolve => {
+    const render = new FileReader()
+    render.readAsArrayBuffer(file)
+    render.onload = () => {
+      const data = render.result as ArrayBuffer
+      workbook.xlsx.load(data).then(workbook => {
+        resolve(workbook)
+      })
+    }
+  })
+}
+// import { ref } from 'vue'
+const customRequest = async (uploadChangeParam: UploadParam) => {
+  const { onSuccess, file }: { file: any, onSuccess: () => void } = uploadChangeParam
+  const workbook = await parseFile(file)
+  const workSheet = workbook.getWorksheet(1)
+  const column = workSheet.getColumn(1)
+  console.log(column.values, 123)
+  onSuccess()
+}
+
 </script>
 
-<style scoped lang="less"></style>
+<style scoped lang="less">
+.container {
+  margin: 150px auto;
+  width: 45%;
+}
+</style>
