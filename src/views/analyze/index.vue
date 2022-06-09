@@ -25,9 +25,20 @@ interface UploadParam extends UploadChangeParam {
   onSuccess(): void
 }
 
-const workbook = new ExcelJS.Workbook()
+const writeFile = (fileName: string, content: ExcelJS.Buffer) => {
+  const a = document.createElement('a')
+  const blob = new Blob([content])
+  a.download = `${fileName}.xlsx`
+  a.href = URL.createObjectURL(blob)
+  a.click()
+}
 
+/**
+ * 解析文件
+ * @param file
+ */
 const parseFile: (file: File) => Promise<ExcelJS.Workbook> = (file) => {
+  const workbook = new ExcelJS.Workbook()
   return new Promise(resolve => {
     const render = new FileReader()
     render.readAsArrayBuffer(file)
@@ -39,15 +50,49 @@ const parseFile: (file: File) => Promise<ExcelJS.Workbook> = (file) => {
     }
   })
 }
-// import { ref } from 'vue'
+
+// if (i === 6) {
+//   cell.fill = {
+//     type: 'pattern',
+//     pattern: 'solid',
+//     fgColor: {
+//       argb: 'FFA9D08E'
+//     }
+//   }
+// }
+const handleData = async (remarkColumn: readonly ExcelJS.CellValue[], studentColumn: readonly ExcelJS.CellValue[]) => {
+  const workbook = new ExcelJS.Workbook()
+  const worksheet = workbook.addWorksheet('学生名单')
+  /**
+   * 查重
+   */
+  for (let i = 1; i < studentColumn.length; i++) {
+    const student = studentColumn[i]
+    const cell = worksheet.getCell(i, 1)
+    cell.value = student
+  }
+  // const firstColumn = worksheet.getColumn(1)
+  // firstColumn.header = '学生'
+  const buffer = await workbook.xlsx.writeBuffer()
+  writeFile('分析结果', buffer)
+}
+
 const customRequest = async (uploadChangeParam: UploadParam) => {
-  const { onSuccess, file }: { file: any, onSuccess: () => void } = uploadChangeParam
+  const file: any = uploadChangeParam.file
   const workbook = await parseFile(file)
   const workSheet = workbook.getWorksheet(1)
-  const column = workSheet.getColumn(1)
-  console.log(column.values, 123)
-  onSuccess()
+  const remarkColumn = workSheet.getColumn(1).values
+  const studentColumn = workSheet.getColumn(2).values
+  await handleData(remarkColumn, studentColumn)
+  uploadChangeParam.onSuccess()
 }
+
+// const addWorkbook = (rowList: string[]) => {
+//   // 创建工作簿
+//   const workbook = new ExcelJS.Workbook()
+//   // 添加工作表
+//   const worksheet = workbook.addWorksheet('sheet1')
+// }
 
 </script>
 
