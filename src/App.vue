@@ -1,6 +1,12 @@
 <template>
-  <router-view/>
+<!--  <router-view />-->
+  <Analyze />
 </template>
+
+<script setup lang="ts">
+// 本地不需要路由
+import Analyze from '@/views/analyze/index.vue'
+</script>
 
 <style lang="less">
 #app {
