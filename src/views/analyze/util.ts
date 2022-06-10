@@ -6,12 +6,52 @@ export default class PayingStudents {
   studentColumn:readonly ExcelJS.CellValue[]
   workbook: ExcelJS.Workbook
   worksheet: ExcelJS.Worksheet
+  worksheetErr: ExcelJS.Worksheet
+  studentErr: Set<string>
 
   constructor (remarkColumn: readonly ExcelJS.CellValue[], studentColumn: readonly ExcelJS.CellValue[]) {
     this.remarkColumn = remarkColumn
     this.studentColumn = studentColumn
     this.workbook = new ExcelJS.Workbook()
     this.worksheet = this.workbook.addWorksheet('学生名单')
+    this.worksheetErr = this.workbook.addWorksheet('重名学生名单')
+    this.studentErr = new Set([])
+  }
+
+  /**
+   * 设置背景景色配置
+   * @param color
+   */
+  setCellFill (color: string): ExcelJS.FillPattern {
+    return {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: {
+        argb: color
+      }
+    }
+  }
+
+  /**
+   * 设置边框样式
+   */
+  setBorderColor (): Partial<ExcelJS.Borders> {
+    const border: ExcelJS.Border = {
+      style: 'thin',
+      color: {
+        argb: 'FFC3CBDD'
+      }
+    }
+    return {
+      top: border,
+      left: border,
+      bottom: border,
+      right: border,
+      diagonal: {
+        up: true,
+        down: true
+      }
+    }
   }
 
   /**
@@ -24,7 +64,10 @@ export default class PayingStudents {
       if (index !== j) {
         const other = this.studentColumn[j] as string
         const repeat:boolean = other.includes(student)
-        if (repeat) return repeat
+        if (repeat) {
+          this.studentErr.add(student)
+          return repeat
+        }
       }
     }
     return false
@@ -41,13 +84,7 @@ export default class PayingStudents {
       commentCell.value || (commentCell.value = comment)
       const repeat:boolean = comment.includes(student)
       if (repeat) {
-        commentCell.fill = {
-          type: 'pattern',
-          pattern: 'solid',
-          fgColor: {
-            argb: 'FFA9D08E'
-          }
-        }
+        commentCell.fill = this.setCellFill('FFA9D08E')
         return repeat
       }
     }
@@ -61,13 +98,7 @@ export default class PayingStudents {
       studentCell.value = student
       const repeat = this.judgeSameName(i, student)
       if (repeat) {
-        studentCell.fill = {
-          type: 'pattern',
-          pattern: 'solid',
-          fgColor: {
-            argb: 'FFFF0000'
-          }
-        }
+        studentCell.fill = this.setCellFill('FFFF0000')
       }
       const paid = repeat ? false : this.setStudentsPaid(student)
       if (paid) {
@@ -75,27 +106,23 @@ export default class PayingStudents {
         paidCell.value = 1
       }
     }
-    this.worksheet.insertRow(1, ['留言', '学生名单', '付费情况'])
-    this.worksheet.getColumn(1).style = {
-      alignment: {
-        horizontal: 'center',
-        vertical: 'middle'
-      },
-      font: {
-        size: 14
-      },
-      border: {
-
-      },
-      fill: {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: {
-          argb: 'FFFF0000'
-        }
+    this.worksheet.insertRow(1, ['留言信息', '学生名单', '付费情况'])
+    this.worksheet.getRow(1).eachCell((cell) => {
+      cell.style = {
+        alignment: {
+          horizontal: 'center',
+          vertical: 'middle'
+        },
+        border: this.setBorderColor(),
+        font: {
+          size: 12
+        },
+        fill: this.setCellFill('FFFFFF00')
       }
-    }
-
+    })
+    this.studentErr.forEach((value:string) => {
+      this.worksheetErr.addRow([value])
+    })
     const buffer = await this.workbook.xlsx.writeBuffer()
     this.writeFile('分析结果', buffer)
   }
