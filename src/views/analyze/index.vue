@@ -49,9 +49,7 @@ const customRequest = async (uploadChangeParam: UploadParam) => {
   const file = uploadChangeParam.file
   const workbook = await parseFile(file)
   const workSheet = workbook.getWorksheet(1)
-  const remarkColumn = workSheet.getColumn(1).values
-  const studentColumn = workSheet.getColumn(2).values
-  const payingStudents = new PayingStudents(remarkColumn, studentColumn)
+  const payingStudents = new PayingStudents(workSheet)
   await payingStudents.start()
   uploadChangeParam.onSuccess()
 }
