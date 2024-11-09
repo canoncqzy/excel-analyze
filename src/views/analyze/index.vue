@@ -1,7 +1,7 @@
 <template>
   <div class="container">
     <a-upload-dragger
-      accept=".xlsx,.xls"
+      accept=".xlsx"
       :customRequest="customRequest"
     >
       <p class="ant-upload-drag-icon">

@@ -121,10 +121,8 @@ export default class PayingStudents {
         studentCell.fill = this.setCellFill('FFFF0000')
       }
       const paid = repeat ? false : this.setStudentsPaid(student)
-      if (paid) {
-        const paidCell = this.worksheet.getCell(i, this.padCol)
-        paidCell.value = 1
-      }
+      const paidCell = this.worksheet.getCell(i, this.padCol)
+      paidCell.value = paid ? 1 : 0
     }
     // this.worksheet.insertRow(1, ['留言信息', '学生名单', '付费情况'])
     this.worksheet.getRow(1).eachCell((cell) => {
